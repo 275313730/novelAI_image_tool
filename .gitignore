@@ -6,6 +6,7 @@ my_images
 dist
 novelai_image_tool
 *images*
+config.json
 
 main.spec
 *images*.json
