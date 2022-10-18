@@ -1,0 +1,10 @@
+.idea
+venv
+build
+my_images
+dist
+novelai_image_tool
+
+main.spec
+my_images.json
+
