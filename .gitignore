@@ -4,7 +4,8 @@ build
 my_images
 dist
 novelai_image_tool
+*images*
 
 main.spec
-my_images.json
+*images*.json
 

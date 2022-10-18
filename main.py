@@ -1,49 +1,64 @@
-import json
 import os
+import json
 import imageio.v3 as iio
 
+
 def get_images_data():
-    print("**图片数据处理开始**")
-    print("-正在打开config.json文件")
+    print('**程序运行中**')
     with open('./config.json', 'r', encoding='utf8') as fp:
+        print('-正在打开config.json')
         config = json.load(fp)
-        images_dir = config['images_dir']
+        images_dir = config["images_dir"]
         images_data = []
-        print("-正在获取文件夹内图片")
-        for root, dirs, files in os.walk(images_dir):
+        print('-正在获取图片列表')
+
+        error_files = []
+        for root, dirs, files in os.walk(config['images_dir']):
+            print('-正在分析图片数据')
             for file in files:
-                error_files = []
-                print("--正在分析:" + file)
-                if ".png" not in file:
+                if "png" not in file:
+                    error_files.append(file)
+                    continue
+                metadata = iio.immeta('./' + images_dir + "/" + file)
+
+                if not metadata:
                     error_files.append(file)
                     continue
 
-                image_path = "./" + images_dir + "/" + file
-                im = iio.immeta(image_path)  # read a standard image
-
-                keywords_array = im['Description'].split(",")
+                keywords_array = metadata['Description'].split(',')
                 for index in range(len(keywords_array)):
-                    keywords_array[index] = keywords_array[index].lstrip().rstrip()
+                    keywords_array[index] = keywords_array[index].lstrip().rstrip().replace('\u00a0', ' ')
 
-                comment = json.loads(im['Comment'])
+                comment = json.loads(metadata['Comment'])
                 negative_keywords_array = comment['uc'].split(',')
                 for index in range(len(negative_keywords_array)):
-                    negative_keywords_array[index] = negative_keywords_array[index].lstrip().rstrip()
+                    negative_keywords_array[index] = negative_keywords_array[index].lstrip().rstrip().replace('\u00a0',
+                                                                                                              ' ')
 
                 image_url = "./images/" + images_dir + "/" + file
-                image_data = {"keywordsArray": keywords_array, "negativeKeywordsArray": negative_keywords_array,
+                image_data = {"keywordsArray": keywords_array,
+                              "negativeKeywordsArray": [],
                               "imageUrl": image_url,
-                              "seed": comment['seed'], 'r18': config['r18']}
+                              "steps": comment['steps'],
+                              "strength": comment['strength'],
+                              "noise": comment['noise'],
+                              "scale": comment['scale'],
+                              "seed": comment['seed'],
+                              "sampler": comment['sampler'],
+                              'r18': config['r18']}
                 images_data.append(image_data)
-        f = open("./" + config['images_dir'] + ".json", 'w')
+        print('-图片数据分析完成')
+
+        json_path = "./" + images_dir + ".json"
+        f = open(json_path, 'w')
         f.write(json.dumps(images_data))
         f.close()
-
-        print("-" + images_dir + ".json 已生成")
+        print('-文件' + images_dir + ".json已生成")
         if len(error_files) > 0:
-            print("分析失败的文件如下：" + str(error_files))
+            print('-无效文件如下:' + str(error_files))
+        print('**处理完成**')
 
-        print("**图片数据处理完毕**")
+    os.system('pause')
 
 
 get_images_data()
